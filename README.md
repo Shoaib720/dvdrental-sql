@@ -171,3 +171,14 @@ ON i.film_id = f.film_id
 WHERE f.rating = 'PG'
 GROUP BY f.film_id
 ```
+
+### Display the movies offered for rent in store_id 1 and not offered in store_id 2
+
+```sql
+SELECT count(film_id) from inventory
+WHERE store_id = 1 AND film_id NOT IN
+(
+  SELECT film_id FROM inventory
+  WHERE store_id = 2
+)
+```

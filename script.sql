@@ -1,0 +1,5 @@
+-- Active: 1698914836270@@127.0.0.1@5432@dvdrental
+
+SELECT * FROM actor;
+
+SHOW TABLES;
