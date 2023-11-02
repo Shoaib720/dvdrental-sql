@@ -1,0 +1,150 @@
+-- SQLBook: Markup
+## SELECT
+-- SQLBook: Code
+SELECT * FROM actor;
+-- SQLBook: Code
+SELECT * from actor limit 20 OFFSET 100;
+-- SQLBook: Code
+# Unique actors
+SELECT COUNT(*) FROM actor;
+-- SQLBook: Code
+SELECT COUNT(DISTINCT first_name || last_name) FROM actor;
+-- SQLBook: Markup
+### Do we have actors in the actor table that share the full name and if yes display those shared names.
+-- SQLBook: Code
+SELECT  a1.actor_id,a1.first_name,a1.last_name from
+actor as a1 JOIN actor as a2
+ON
+ a1.first_name = a2.first_name and a1.last_name = a2.last_name and a1.actor_id <> a2.actor_id;
+-- SQLBook: Markup
+### Display the customer names that share the same address (e.g. husband and wife).
+-- SQLBook: Code
+SELECT * from address;
+-- SQLBook: Code
+SELECT * from customer;
+-- SQLBook: Code
+select c1.first_name,c1.last_name,c2.first_name,c2.last_name FROM
+customer c1 JOIN customer c2
+ON
+c1.customer_id <> c2.customer_id and c1.address_id = c2.address_id
+-- SQLBook: Markup
+### Display the total amount payed by all customers in the payment table.
+-- SQLBook: Code
+SELECT sum(amount) FROM payment;
+-- SQLBook: Code
+SELECT sum(amount), customer_id FROM payment
+GROUP BY customer_id
+ORDER BY sum DESC
+-- SQLBook: Code
+SELECT first_name, last_name, sum(amount) as Total
+FROM
+customer c join payment p
+on
+  c.customer_id = p.customer_id
+GROUP BY c.customer_id
+ORDER BY Total DESC
+-- SQLBook: Markup
+### What is the movie(s) that was rented the most
+-- SQLBook: Code
+select * from film
+-- SQLBook: Code
+SELECT * from rental
+-- SQLBook: Code
+SELECT * from inventory
+-- SQLBook: Code
+SELECT f.title,count(*) as times_rented FROM
+rental r join inventory i
+ON
+  r.inventory_id = i.inventory_id
+join film f
+ON
+  i.film_id = f.film_id
+GROUP BY f.film_id
+ORDER BY times_rented DESC
+LIMIT 1
+
+-- SQLBook: Code
+SELECT title FROM film
+WHERE film_id IN
+  (SELECT film_id FROM
+  rental r join inventory i
+  ON
+    r.inventory_id = i.inventory_id
+  GROUP BY film_id
+  HAVING count(film_id) IN
+    (SELECT count(*) FROM
+    rental r join inventory i
+    ON
+      r.inventory_id = i.inventory_id
+    GROUP BY film_id
+    ORDER BY count(*) DESC limit 1))
+-- SQLBook: Markup
+### Which customers have not rented any movies so far
+-- SQLBook: Code
+SELECT * from customer
+-- SQLBook: Code
+select * from rental
+-- SQLBook: Code
+SELECT count(*) from customer
+WHERE customer_id NOT IN
+(SELECT customer_id as rented_by FROM rental
+GROUP BY customer_id)
+
+-- SQLBook: Code
+SELECT * from customer
+WHERE customer_id NOT IN
+(SELECT DISTINCT customer_id from rental)
+-- SQLBook: Markup
+### Which movies have not been rented so far
+-- SQLBook: Code
+SELECT title from film
+WHERE film_id NOT IN 
+  (SELECT DISTINCT film_id
+  from rental r
+  join inventory i
+  ON r.inventory_id = i.inventory_id)
+
+-- SQLBook: Markup
+### Show the number of movies each actor acted in
+-- SQLBook: Code
+SELECT * from actor
+-- SQLBook: Code
+SELECT concat(a.first_name,' ', a.last_name) as actor, count(film_id) as films_acted_in FROM
+actor a LEFT JOIN film_actor fa
+ON
+a.actor_id = fa.actor_id
+GROUP BY a.actor_id
+ORDER BY a.first_name
+-- SQLBook: Markup
+### Display the names of the actors that acted in more than 20 movies
+-- SQLBook: Code
+SELECT concat(a.first_name,' ', a.last_name) as actor, count(film_id) as films_acted_in FROM
+actor a LEFT JOIN film_actor fa
+ON
+a.actor_id = fa.actor_id
+GROUP BY a.actor_id
+HAVING count(film_id) > 20
+ORDER BY a.first_name
+-- SQLBook: Markup
+### How many actors have 8 letters only in their first_names
+-- SQLBook: Code
+SELECT count(*) FROM actor
+WHERE length(first_name) = 8
+-- SQLBook: Markup
+### For all the movies rated “PG” show me the movie and the number of times it got rented
+-- SQLBook: Code
+SELECT * FROM 
+inventory i JOIN rental r
+ON i.inventory_id = r.inventory_id
+WHERE film_id IN
+  (SELECT film_id FROM film
+  WHERE rating = 'PG')
+-- SQLBook: Code
+
+SELECT f.title as title, count(f.film_id) as Count, rating FROM
+inventory i JOIN rental r
+ON i.inventory_id = r.inventory_id
+JOIN film f
+ON i.film_id = f.film_id
+WHERE f.rating = 'PG'
+GROUP BY f.film_id
